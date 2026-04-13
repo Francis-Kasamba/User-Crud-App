@@ -1,7 +1,7 @@
 package com.example.usercrudapp.controller
 
 import com.example.usercrudapp.model.User
-import com.example.usercrudapp.repository.UserRepository
+import com.example.usercrudapp.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "Users", description = "User management APIs")
-class UserController(private val userRepository: UserRepository) {
+class UserController(private val userService: UserService) {
 
     // GET all users
     @GetMapping
     @Operation(summary = "Get all users", description = "Returns the complete list of users")
     @ApiResponse(responseCode = "200", description = "Users fetched successfully")
     fun getAllUsers(): ResponseEntity<List<User>> {
-        return ResponseEntity.ok(userRepository.findAll())
+        return ResponseEntity.ok(userService.getAllUsers())
     }
 
     // GET a user by ID
@@ -36,9 +36,9 @@ class UserController(private val userRepository: UserRepository) {
         ]
     )
     fun getUserById(@Parameter(description = "User ID", example = "1") @PathVariable id: Long): ResponseEntity<User> {
-        return userRepository.findById(id)
-            .map { ResponseEntity.ok(it) }
-            .orElse(ResponseEntity.notFound().build())
+        return userService.getUserById(id)
+            ?.let { ResponseEntity.ok(it) }
+            ?: ResponseEntity.notFound().build()
     }
 
     // CREATE a new user
@@ -47,11 +47,15 @@ class UserController(private val userRepository: UserRepository) {
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "201", description = "User created"),
-            ApiResponse(responseCode = "400", description = "Invalid request body", content = [Content(schema = Schema())])
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid request body",
+                content = [Content(schema = Schema())]
+            )
         ]
     )
     fun createUser(@RequestBody user: User): ResponseEntity<User> {
-        val savedUser = userRepository.save(user)
+        val savedUser = userService.createUser(user)
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser)
     }
 
@@ -68,12 +72,9 @@ class UserController(private val userRepository: UserRepository) {
         @Parameter(description = "User ID", example = "1") @PathVariable id: Long,
         @RequestBody user: User
     ): ResponseEntity<User> {
-        return if (userRepository.existsById(id)) {
-            val updatedUser = user.copy(id = id)
-            ResponseEntity.ok(userRepository.save(updatedUser))
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        return userService.updateUser(id, user)
+            ?.let { ResponseEntity.ok(it) }
+            ?: ResponseEntity.notFound().build()
     }
 
     // DELETE a user
@@ -86,8 +87,7 @@ class UserController(private val userRepository: UserRepository) {
         ]
     )
     fun deleteUser(@Parameter(description = "User ID", example = "1") @PathVariable id: Long): ResponseEntity<Void> {
-        return if (userRepository.existsById(id)) {
-            userRepository.deleteById(id)
+        return if (userService.deleteUser(id)) {
             ResponseEntity.noContent().build()
         } else {
             ResponseEntity.notFound().build()
