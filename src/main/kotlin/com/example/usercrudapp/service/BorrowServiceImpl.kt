@@ -72,6 +72,7 @@ class BorrowServiceImpl(
     private fun Borrow.toResponse(): BorrowResponse = BorrowResponse(
         id = id,
         userId = user.id,
+        userName= user.name,
         bookId = book.id,
         borrowDate = borrowDate,
         returnDate = returnDate,

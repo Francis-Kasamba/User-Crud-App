@@ -19,6 +19,7 @@ data class ReturnBookRequest(
 data class BorrowResponse(
     val id: Long,
     val userId: Long,
+    val userName: String,
     val bookId: Long,
     val borrowDate: LocalDateTime,
     val returnDate: LocalDateTime?,
