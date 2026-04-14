@@ -1,12 +1,14 @@
 package com.example.usercrudapp.service
 
+import com.example.usercrudapp.dto.UserResponse
+import com.example.usercrudapp.mappers.toResponse
 import com.example.usercrudapp.model.User
 import com.example.usercrudapp.repository.UserRepository
 import org.springframework.stereotype.Service
 
 @Service
 class UserServiceImpl(private val userRepository: UserRepository) : UserService {
-    override fun getAllUsers(): List<User> = userRepository.findAll()
+    override fun getAllUsers(): List<UserResponse> = userRepository.findAll().map { it.toResponse() }
 
     override fun getUserById(id: Long): User? = userRepository.findById(id).orElse(null)
 

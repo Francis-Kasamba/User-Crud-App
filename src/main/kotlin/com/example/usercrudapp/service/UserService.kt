@@ -1,9 +1,10 @@
 package com.example.usercrudapp.service
 
+import com.example.usercrudapp.dto.UserResponse
 import com.example.usercrudapp.model.User
 
 interface UserService {
-    fun getAllUsers(): List<User>
+    fun getAllUsers(): List<UserResponse>
 
     fun getUserById(id: Long): User?
 
